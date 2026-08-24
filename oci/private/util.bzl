@@ -243,13 +243,14 @@ _INDEX_JSON_TMPL = """\
       {{
          "mediaType": "{}",
          "size": {},
-         "digest": "{}"{optional_platform}
+         "digest": "{}"{optional_platform}{optional_artifact_type}
       }}
    ]
 }}"""
 
-def _build_manifest_json(media_type, size, digest, platform):
+def _build_manifest_json(media_type, size, digest, platform, artifact_type = None):
     optional_platform = ""
+    optional_artifact_type = ""
 
     if platform:
         platform_parts = platform.split("/", 3)
@@ -265,11 +266,17 @@ def _build_manifest_json(media_type, size, digest, platform):
             "os": "{}"{optional_variant}
          }}""".format(platform_parts[1], platform_parts[0], optional_variant = optional_variant)
 
+    if artifact_type:
+        optional_artifact_type = """,
+         "artifactType": "{}"\
+""".format(artifact_type)
+
     return _INDEX_JSON_TMPL.format(
         media_type,
         size,
         digest,
         optional_platform = optional_platform,
+        optional_artifact_type = optional_artifact_type,
     )
 
 def _assert_crane_version_at_least(ctx, at_least, rule):

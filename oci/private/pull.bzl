@@ -238,6 +238,8 @@ def _oci_pull_impl(rctx):
     manifest, size, digest = downloader.download_manifest(rctx.attr.identifier, "manifest.json")
     media_type = _determine_media_type(manifest)
 
+    matching_manifest = None
+
     if media_type in _SUPPORTED_MEDIA_TYPES["manifest"]:
         # copy manifest.json to blobs with its digest.
         rctx.template(_digest_into_blob_path(digest), "manifest.json")
@@ -315,11 +317,14 @@ def _oci_pull_impl(rctx):
         if hasattr(r, "wait"):
             r.wait()
 
+    artifact_type = matching_manifest.get("artifactType", None) if matching_manifest else manifest.get("artifactType", None)
+
     rctx.file("index.json", util.build_manifest_json(
         media_type = media_type,
         size = size,
         digest = digest,
         platform = rctx.attr.platform,
+        artifact_type = artifact_type,
     ))
     rctx.file("oci-layout", json.encode_indent({"imageLayoutVersion": "1.0.0"}, indent = "    "))
 
